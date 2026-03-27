@@ -1,0 +1,109 @@
+# Global configuration
+global:
+  image:
+    repository: public.ecr.aws/p3v1o3c6/registry
+    tag: 1.0.17
+    pullPolicy: IfNotPresent
+
+# Application configuration
+app:
+  name: registry
+  replicas: 1
+  envSecretName: registry-secret
+
+  # External URLs
+  authServerUrl: http://localhost:8888
+
+  # Security settings
+  # secretKey: If not provided, a random 64-character key is auto-generated.
+  # When deployed via mcp-gateway-registry-stack, the key is shared with auth-server.
+  # Uncomment to use a specific key:
+  # secretKey: "your-secure-key-here"
+
+  # Federation configuration
+  federationStaticTokenAuthEnabled: false #If not provided, defaults to false
+  federationStaticToken: # If not provided, a random token is auto-generated
+  federationEncryptionKey: # If not provided, a Fernet key is auto-generated
+  registryId: # Unique identifier for this registry instance (optional)
+
+  # Skill security scanning configuration
+  skillSecurityScanEnabled: true  # Enable/disable skill security scanning
+  skillSecurityAnalyzers: "static"  # Comma-separated: static, behavioral, llm, meta, virustotal, ai-defense
+
+  # OpenTelemetry direct OTLP push export configuration
+  otelOtlpEndpoint: ""  # OTLP endpoint URL (e.g., https://otlp.datadoghq.com)
+  otelExporterOtlpHeaders: ""  # OTLP headers (e.g., dd-api-key=YOUR_KEY)
+  otelOtlpExportIntervalMs: "30000"  # Export interval in milliseconds
+  otelExporterOtlpMetricsTemporalityPreference: "cumulative"  # cumulative or delta
+
+  # Deployment mode: with-gateway (nginx integration) or registry-only (catalog only)
+  deploymentMode: with-gateway
+
+  # Registry mode: full, skills-only, mcp-servers-only, agents-only
+  registryMode: full
+
+# ANS (Agent Name Service) Integration
+ans:
+  enabled: false  # Enable ANS integration for trust verification
+  apiEndpoint: "https://api.godaddy.com"  # ANS API base URL
+  apiKey: ""  # GoDaddy API key (required when enabled)
+  apiSecret: ""  # GoDaddy API secret (required when enabled)
+  apiTimeoutSeconds: "30"  # HTTP request timeout for ANS API calls
+  syncIntervalHours: "6"  # Background re-verification interval
+  verificationCacheTtlSeconds: "3600"  # Cache TTL for verification results
+
+# Registry Card Configuration (for federation and discovery)
+registryCard:
+  url: ""  # External URL of the registry (e.g., https://registry.example.com). Defaults to computed ingress URL.
+  name: "AI Registry"  # Human-readable name
+  organizationName: "ACME Inc."  # Organization operating the registry
+  description: ""  # Optional description
+  contactEmail: ""  # Optional contact email
+  contactUrl: ""  # Optional contact URL/website
+
+# Entra ID integration (used when authProvider.type = "entra" in standalone deployment)
+entra:
+  clientId: ""
+  clientSecret: ""
+  tenantId: ""
+
+# Okta integration (used when authProvider.type = "okta" in standalone deployment)
+okta:
+  domain: ""  # e.g., dev-123456.okta.com
+  clientId: ""
+  clientSecret: ""
+  m2mClientId: ""  # Optional: defaults to clientId
+  m2mClientSecret: ""  # Optional: defaults to clientSecret
+  apiToken: ""  # Optional: required for IAM operations
+  authServerId: ""  # Optional: uses default Org Authorization Server if not set
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8000
+  annotations: {}
+
+# Resource limits and requests
+resources:
+  requests:
+    cpu: 1
+    memory: 1Gi
+  limits:
+    cpu: 2
+    memory: 2Gi
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: alb
+  hostname: ""
+  annotations: {}
+  tls: false
+  # Routing mode: "subdomain" or "path"
+  # - subdomain: mcpregistry.domain.com
+  # - path: domain.com/registry (configurable via path setting)
+  routingMode: subdomain
+  # Path prefix when using path-based routing (default: /registry)
+  path: /registry
+
+nodeSelector: {}
